@@ -1,0 +1,12 @@
+QSP player for PocketBook is developed on the base of "Quest Software player", made by Valeriy Argunov (nporep AT mail DOT ru)
+This application is licensed under GNU General Public License
+
+for updates please visit http://fedorchenko.net/qsp.php
+
+BUILD:
+You need next external libraries:
+
+- htmlcxx ( http://htmlcxx.sf.net )
+- libungif (or giflib)
+- libpng
+- libjpeg

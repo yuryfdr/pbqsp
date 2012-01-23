@@ -1,0 +1,35 @@
+07.01.2012
+    - fix midi file change
+    - fix wrong window slashes in image paths (filimon2).
+05.01.2012
+    - update to current pbtk
+21.12.2011
+    - move to pbtk
+    - ogg support - ogg123
+05.09.2011
+    - midi and mp3 support (through timidity and mpg123)
+01.06.2011
+    - 5.7.0.0-rc1
+    - png,gif support
+    - links with images support
+26.05.2011
+    - some code reorganization and clean up
+    - use htmlcxx to parse location - more html tags support
+    - support links in location description
+15.05.2011
+    - 5.7.0.0-pre20110515
+    - add scroll instead of paging to LocationDescription
+05.05.2011
+    - 5.7.0.0-pre20110505
+    - downgrade qsp engine to r615 (fix problem with some quests)
+    - initial touchscreen support
+    - работают квесты Хроника борьбы с тараканами, Кот Филимон , Взгляд из коробки.
+14.04.2011
+    - 5.7.0.0-pre20110414
+    - async call of keyboadr and Objects Menu
+    - some threads modifications
+    - работают квесты Хроника борьбы с тараканами и Кот Филимон
+
+01.04.2011
+    - mix 1st and svn from AI to working (in some times)
+    - update qsp engine to current
