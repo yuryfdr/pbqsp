@@ -1,3 +1,7 @@
+28.01.2012
+   v 5.7.0.1-rc1
+    - fix blink on load
+    - fix some memory likage
 07.01.2012
     - fix midi file change
     - fix wrong window slashes in image paths (filimon2).

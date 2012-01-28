@@ -122,7 +122,33 @@ public:
   virtual void draw();
   virtual int handle(int type, int par1, int par2);
 };
-
+class MessageDialog : public PBDialog {
+  PBButton bt_ok;
+  PBListBox text;
+  void on_ok(PBButton*){
+    quit(true);
+  }
+  public:
+  MessageDialog():PBDialog(""),bt_ok("Ok",this),text("",this){
+    addWidget(&text);
+    addWidget(&bt_ok);
+    bt_ok.onPress.connect(sigc::mem_fun(this,&MessageDialog::on_ok));
+  }
+  void setMessage(const std::string& msg);
+  void placeWidgets(){
+    int sw=ScreenWidth();
+    int sh=ScreenHeight();
+    setSize(sw/6,sh/6,2*sw/3,2*sh/3);
+    text.setSize(x()+2,y()+2,w()-4,h()-32);
+    text.placeWidgets();
+    PBWidget* li=text.getItem(text.itemsCount()-1);
+    if( li && (li->x()+li->h()) < (h()-32) ){
+      setSize(sw/6,sh/6,2*sw/3,(li->x()+li->h())+32);
+      text.setSize(x()+2,y()+2,w()-4,h()-32);
+    }
+    bt_ok.setSize(x()+w()/2,y()+h()-28,w()/2-2,25);
+  }
+};
 class GameScreen : public PBWidget
 {
 protected:
@@ -134,6 +160,13 @@ protected:
   ActionsDialog actionsDialog;
   ObjectsScreen objectsScreen;
   ImageScreen imageScreen;
+public:
+  MessageDialog *messageDialog;
+  void initMessage();
+  void hideImageScreen(){
+    imageScreen.setVisible(false);
+  }
+protected:
   bool image_shown;
   virtual void placeWidgets();
   void switchObjectsScreen();
@@ -142,6 +175,7 @@ protected:
   void ActionExecutedHandler(PBWidget * sender);
   void ButtonPressedHandler(PBWidget * sender);
   void DialogLeavedHandler(PBWidget * sender, bool next);
+  void message_end(PBDialog*,bool);
 public:
 
   GameScreen(std::string name, PBWidget *parent);
@@ -153,7 +187,7 @@ public:
   std::string getLastCommand();
   void setLastCommand(std::string value);
   void showWindow(int window, bool show);
-  void showImage(PBImage *image);
+  void showImage(boost::shared_ptr<PBImage> image);
 };
 
 class MainScreen : public PBWidget

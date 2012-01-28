@@ -111,6 +111,7 @@ void dir_selected(int isok,PBFileChooser* fc)
       ShowError();
     chdir(GetQuestPath().c_str());
     QSPRestartGame(QSP_TRUE);
+    mainScreen.getGameScreen()->hideImageScreen();
   }
 }
 
@@ -218,7 +219,7 @@ void HandleMainMenuItem(int index)
 			Message(ICON_INFORMATION, "QSP", "QspPlayer for PocketBook v"
 			APP_VERSION
 			"\nАлександр Грибанов (AI)© 2009\n"
-			"Юрий Федорченко (yuryfdr)© 2011",5000);
+			"Юрий Федорченко (yuryfdr)© 2011-2012",5000);
 			usleep(5000);
 			break;
 		default:
@@ -289,10 +290,16 @@ GameScreen *MainScreen::getGameScreen()
   return &gameScreen;
 }
 
+void GameScreen::initMessage(){
+  if(!messageDialog){
+    messageDialog=new MessageDialog();
+    messageDialog->onQuit.connect(sigc::mem_fun(this,  &GameScreen::message_end));
+  }
+}
 GameScreen::GameScreen(std::string name, PBWidget *parent) : PBWidget(name, parent),
   menuButton("menuButton", this), commandBoxButton("commandBoxButton", this), objectsButton("objectsButton", this),
   versionLabel("versionLabel", this), locationDescription("locationDescription", this), actionsDialog("actionsDialog", this),
-  objectsScreen("objectsScreen", this), imageScreen("imageScreen", this)//,
+  objectsScreen("objectsScreen", this), imageScreen("imageScreen", this),messageDialog(NULL)
 {
   _drawBorder=false;
   _leaveOnKeys=false;
@@ -538,10 +545,11 @@ void GameScreen::showWindow(int window, bool show)
 		  }
 		break;
 	}
-	update(true);
+	update_needed=true;
+	//update(true);
 }
 
-void GameScreen::showImage(PBImage *image)
+void GameScreen::showImage(boost::shared_ptr<PBImage> image)
 {
   imageScreen.setImage(image);
   imageScreen.setVisible(true);
@@ -598,7 +606,7 @@ int LocationDescription::handle(int type, int par1, int par2){
       }
     }
   }
-  if( !ret && type == EVT_POINTERDOWN && eventInside(par1,par2)){
+  if( !ret && type == EVT_POINTERUP && eventInside(par1,par2)){
     for(lbitem_cit it = _items.begin()/*+_topItemIndex*/;
                    it < _items.end()/*+_bottomItemIndex+1*/;++it){
       if( (*it)->eventInside(par1,par2) ){
@@ -720,7 +728,7 @@ int ObjectsDialog::handle(int type, int par1, int par2)
       break;
     }
   }
-  if( type == EVT_POINTERDOWN && eventInside(par1,par2)){
+  if( type == EVT_POINTERUP && eventInside(par1,par2)){
     for(lbitem_cit it = _items.begin();it < _items.end();++it){
       if( (*it)->eventInside(par1,par2) ){
         //if( (*it)->isVisible() && (*it)->GetCanBeFocused() ){
@@ -861,7 +869,7 @@ int ActionsDialog::handle(int type, int par1, int par2)
       }
     }
   }
-  if( type == EVT_POINTERDOWN && eventInside(par1,par2)){
+  if( type == EVT_POINTERUP && eventInside(par1,par2)){
     for(lbitem_cit it = _items.begin()/*+_topItemIndex*/;
                    it < _items.end()/*begin()+_bottomItemIndex+1*/;++it){
       

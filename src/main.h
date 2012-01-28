@@ -1,5 +1,5 @@
 /* Copyright (C) 2009 AI */
-/* Copyright (C) 2011 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
+/* Copyright (C) 2011-2012 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
 /*
 * This library is free software; you can redistribute it and/or modify
 * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "screens.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -26,9 +27,7 @@
 #include <sys/mount.h>
 #include <dlfcn.h>
 #include "inkview.h"
-//#include "convert.h"
 #include "qspcallbacks.h"
-#include "screens.h"
 
 #include "qsp/qsp.h"
 
@@ -36,4 +35,3 @@ extern pthread_mutex_t int_mutex;
 extern pthread_mutex_t qsp_mutex;
 
 #endif
-

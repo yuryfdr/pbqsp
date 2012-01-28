@@ -18,10 +18,10 @@
 #ifndef QSPTHREAD_H
 #define QSPTHREAD_H
 
-#include <stdlib.h>
 #include "helper.h"
 #include "qspcallbacks.h"
 #include "qsp/qsp.h"
+#include <stdlib.h>
 
 #define QSP_EVT_EXIT	101
 #define QSP_EVT_OPENGAME	102
