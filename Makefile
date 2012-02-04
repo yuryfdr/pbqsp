@@ -27,7 +27,7 @@ LDFLAGS+=-L/usr/local/pocketbook_eabi/lib -lungif -lhtmlcxx -lsigc-2.0
 endif
 
 ifeq ($(BUILD),emu)
-CXXFLAGS+=-g `pkg-config --cflags sigc++-2.0` -DHTMLDEBUG  -DHAVE_SOUND=1 #-DNETBOOK=1
+CXXFLAGS+=-g `pkg-config --cflags sigc++-2.0` -DHTMLDEBUG  -DHAVE_SOUND=1 -DNETBOOK=1
 LDFLAGS+=-g -lgif -lhtmlcxx -lsigc-2.0
 endif
 
@@ -112,3 +112,4 @@ $(PROJECT) : $(OBJDIR) $(OBJS)
 
 # Dependencies tracking:
 -include $(OBJDIR)/*.d
+-include $(OBJDIR)/src/*.d

@@ -25,7 +25,7 @@
 #include "qsp/qsp.h"
 #include "qsp/bindings/bindings_config.h"
 
-#define APP_VERSION "5.7.0.1_rc1"
+#define APP_VERSION "5.7.0.1_rc2"
 
 extern ifont *defaultFont, *boldFont, *biggerFont;
 
