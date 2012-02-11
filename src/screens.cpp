@@ -218,7 +218,7 @@ void HandleMainMenuItem(int index)
     usleep(5000);
     break;
   default:
-    //SetDefaultFont(defaultFont->name, index);
+    SetDefaultFont(defaultFont->name, index);
     break;
   }
 }
