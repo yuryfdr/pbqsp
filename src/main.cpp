@@ -19,6 +19,13 @@
 
 ifont *defaultFont;
 ifont *boldFont, *biggerFont;
+namespace {
+  struct initializer{
+    initializer(){
+      OpenScreen();
+    }
+  }iii;
+};
 extern MainScreen mainScreen;
 
 std::string prevGame;

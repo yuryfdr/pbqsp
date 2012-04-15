@@ -113,3 +113,5 @@ $(PROJECT) : $(OBJDIR) $(OBJS)
 # Dependencies tracking:
 -include $(OBJDIR)/*.d
 -include $(OBJDIR)/src/*.d
+-include $(OBJDIR)/src/qsp/*.d
+-include $(OBJDIR)/src/qsp/bindings/pocketbook/*.d

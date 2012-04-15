@@ -10,3 +10,14 @@ You need next external libraries:
 - libungif (or giflib)
 - libpng
 - libjpeg
+
+Установка:
+301+,360,302 
+из архива pbqsp-x.x.x.x-3xx.zip скопировать Qsp.app в папку games на внутренней памяти устройства.
+
+602,603,612,902,902,912
+из архива pbqsp-x.x.x.x-Pro.zip скопировать папки system и applications на устройство.
+установить timidity, sndfile-play и mpg123 из sound-cli-app-x.x.x.x-Pro
+
+611,360+
+из архива pbqsp-x.x.x.x-Pro.zip скопировать папки system и applications на устройство.

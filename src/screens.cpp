@@ -159,6 +159,7 @@ bool GetVarValue(const QSP_CHAR * name, int *num, QSP_CHAR ** str)
 //static char dirbuf[1024];
 void HandleMainMenuItem(int index)
 {
+  std::cerr<<__PRETTY_FUNCTION__<<index<<std::endl;
   std::string fileName;
   IntEventProcessed = true;
   switch (index) {
@@ -215,9 +216,9 @@ void HandleMainMenuItem(int index)
             APP_VERSION
             "\nАлександр Грибанов (AI)© 2009\n"
             "Юрий Федорченко (yuryfdr)© 2011-2012", 5000);
-    usleep(5000);
     break;
   default:
+    if(-1!=index)
     SetDefaultFont(defaultFont->name, index);
     break;
   }
@@ -293,7 +294,7 @@ void GameScreen::initMessage()
 }
 
  GameScreen::GameScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
-menuButton("menuButton", this), commandBoxButton("commandBoxButton", this),
+menuButton("QSP", this), commandBoxButton(" K ", this),
 objectsButton("objectsButton", this), versionLabel("versionLabel", this),
 locationDescription("locationDescription", this), actionsDialog("actionsDialog", this),
 objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageDialog(NULL)
@@ -308,7 +309,6 @@ objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageD
   addWidget(&commandBoxButton);
   addWidget(&objectsButton);
   addWidget(&locationDescription);
-  addWidget(&versionLabel);
   addWidget(&objectsScreen);
   addWidget(&imageScreen);
 
@@ -318,10 +318,8 @@ objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageD
   imageScreen.setVisible(false);
 
   menuButton.onPress.connect(sigc::mem_fun(this, &GameScreen::ButtonPressedHandler));
-  menuButton.setFocused(true);
-
+  //menuButton.setFocused(true);
   commandBoxButton.onPress.connect(sigc::mem_fun(this, &GameScreen::ButtonPressedHandler));
-  versionLabel.setText(APP_VERSION);
 }
 
 void GameScreen::ActionExecutedHandler(PBWidget * sender)
@@ -495,14 +493,12 @@ void GameScreen::update(bool refresh)
 bool GameScreen::reload()
 {
   bool updateNeeded = false;
-  menuButton.setText("QSP");
-
-  commandBoxButton.setText(" K ");
 
   char objButtonCaptionBuf[40];
   sprintf(objButtonCaptionBuf, "Предметы: %d",
           objectsScreen.getObjectsDialog()->getObjectsCount());
   std::string objButtonCaption(objButtonCaptionBuf);
+
   std::string curObject(objectsScreen.getObjectsDialog()->getCurrentObjectDesc());
   if (curObject.size() > 0) {
     objButtonCaption += " | ";
@@ -563,7 +559,6 @@ void GameScreen::showImage(boost::shared_ptr < PBImage > image)
 {
   imageScreen.setImage(image);
   imageScreen.setVisible(true);
-  //imageScreen.setFocused(true);
   update(true);
 }
 
@@ -619,10 +614,9 @@ int LocationDescription::handle(int type, int par1, int par2)
     }
   }
   if (!ret && type == EVT_POINTERUP && eventInside(par1, par2)) {
-    for (lbitem_cit it = _items.begin() /*+_topItemIndex */ ;
-         it < _items.end() /*+_bottomItemIndex+1 */ ; ++it) {
+    for (lbitem_cit it = _items.begin(); it < _items.end() ; ++it) {
       if ((*it)->eventInside(par1, par2)) {
-        if ( /*(*it)->isVisible() && */ (*it)->canBeFocused()) {
+        if ( (*it)->canBeFocused()) {
           (*it)->setFocused(true);
           update();
           if ((*it)->getTag().size() > 5) {
@@ -651,13 +645,16 @@ bool LocationDescription::reload()
   }
   if (QSPIsMainDescChanged() || _rawValue != QSPGetMainDesc()) {
     scrollDelta = 0;
+    //int ois=_items.size();
     clear();
     _rawValue = QSPGetMainDesc();
     ParseTextH(QSPGetMainDesc(), *this, _links);
     // scroll if text was added
-    if (QSPIsMainDescChanged() && !IsFullRefresh() && _items.size() > 0)
-      //getPageItems(_items.size()-1, false);
-      selectItem(_items.size() - 1);
+    if (QSPIsMainDescChanged() && !IsFullRefresh() && _items.size() > 0){
+      std::cerr<<"add text need scroll!"<<ois<<'\t'<<_items.size()<<std::endl;
+      placeWidgets();
+      selectItem(_items.size()-1);
+    }
     return true;
   }
   return false;

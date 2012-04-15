@@ -20,7 +20,7 @@
 #include "qspcallbacks.h"
 #include "screens.h"
 #include "qspthread.h"
-//#include "pbwildmidi.h"
+#include "pbwildmidi.h"
 
 #ifdef __EMU__
 #define KBDOPTS KBD_SCREENTOP

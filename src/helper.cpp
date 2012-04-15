@@ -26,6 +26,8 @@
 #include "htmlcxx/html/ParserDom.h"
 #include "htmlcxx/html/utils.h"
 
+#include <sstream>
+
 void ShowError()
 {
   char message[2048];
@@ -192,14 +194,25 @@ void ParseChildren(PBListBox & listBox,
 #ifdef HTMLDEBUG
             std::cerr << "it text:" << it->text() << std::endl;
 #endif
-            PBListBoxItem *newItem = listBox.addItem(to_utf8(it->text().c_str(),
-                                                             koi8_to_unicode),
-                                                     ciop.tag,
-                                                     ciop.align);
-            if (!ciop.is_link)
-              newItem->setCanBeFocused(false);
-            if (ciop.font != defaultFont)
-              newItem->setWidgetFont(ciop.font);
+            std::string tta=to_utf8(it->text().c_str(),koi8_to_unicode);
+            
+            PBListBoxItem *newItem;
+            if (!ciop.is_link){
+              std::stringstream sss(tta);
+              while(!sss.eof() || !sss.fail()){
+                std::string ppar;
+                std::getline(sss,ppar);
+                newItem = listBox.addItem(ppar,ciop.tag,ciop.align);
+                newItem->setCanBeFocused(false);
+                if (ciop.font != defaultFont)
+                  newItem->setWidgetFont(ciop.font);
+              }
+            }else{
+              newItem = listBox.addItem(tta,ciop.tag,ciop.align);
+              if (ciop.font != defaultFont)
+                newItem->setWidgetFont(ciop.font);
+            }
+            
             ciop.item = newItem;
             ciop.to_parent = false;
             ciop.is_link = false;
