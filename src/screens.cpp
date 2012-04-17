@@ -117,6 +117,7 @@ void SetDefaultFont(std::string name, int size)
   ifont *oldFont = defaultFont;
   defaultFont = font;
   mainScreen.setWidgetFont(defaultFont);
+  //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
   mainScreen.updateUI();
   if (oldFont != 0)
     CloseFont(oldFont);
@@ -136,6 +137,7 @@ void font_selected(char *fontr, char *fontb, char *fonti, char *fontbi)
 void orientation_selected(int direction)
 {
   SetOrientation(direction);
+  //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
   mainScreen.updateUI(true);
 }
 
@@ -159,7 +161,7 @@ bool GetVarValue(const QSP_CHAR * name, int *num, QSP_CHAR ** str)
 //static char dirbuf[1024];
 void HandleMainMenuItem(int index)
 {
-  std::cerr<<__PRETTY_FUNCTION__<<index<<std::endl;
+  //std::cerr<<__PRETTY_FUNCTION__<<index<<std::endl;
   std::string fileName;
   IntEventProcessed = true;
   switch (index) {
@@ -245,6 +247,7 @@ int MainScreen::handle(int type, int par1, int par2)
     gameScreen.setVisible(true);
     gameScreen.setFocused(true);
     placeWidgets();
+    //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
     updateUI();
   }
   return PBWidget::handle(type, par1, par2);
@@ -252,7 +255,7 @@ int MainScreen::handle(int type, int par1, int par2)
 
 void MainScreen::placeWidgets()
 {
-  printf("%s\n", __PRETTY_FUNCTION__);
+  //printf("%s\n", __PRETTY_FUNCTION__);
 #ifdef NETBOOK                  //netbook debuh height
   setSize(0, 0, ScreenWidth(), 580);
   gameScreen.setSize(0, 0, ScreenWidth(), 580);
@@ -270,6 +273,7 @@ bool IsFullRefresh()
 
 void MainScreen::updateUI(bool forceUpdate)
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (IsFullRefresh())
     SendQSPEvent(QSP_EVT_SAVEGAME, "autosave.sav");
 
@@ -486,12 +490,14 @@ int GameScreen::handle(int type, int par1, int par2)
 
 void GameScreen::update(bool refresh)
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   PBWidget::update(refresh);
   FineUpdate();
 }
 
 bool GameScreen::reload()
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   bool updateNeeded = false;
 
   char objButtonCaptionBuf[40];
@@ -520,7 +526,7 @@ bool GameScreen::reload()
     updateNeeded = actionsDialog.reload();
 
   updateNeeded = objectsScreen.reload() || updateNeeded;
-
+  //std::cerr<<__PRETTY_FUNCTION__<<"un"<<updateNeeded<<std::endl;
   return updateNeeded;
 }
 
@@ -580,6 +586,7 @@ void ObjectsScreen::placeWidgets()
 
 bool ObjectsScreen::reload()
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   bool updateNeeded = false;
   updateNeeded = objectsDialog.reload() || updateNeeded;
   updateNeeded = additionalDescription.reload() || updateNeeded;
@@ -618,7 +625,7 @@ int LocationDescription::handle(int type, int par1, int par2)
       if ((*it)->eventInside(par1, par2)) {
         if ( (*it)->canBeFocused()) {
           (*it)->setFocused(true);
-          update();
+          //update();
           if ((*it)->getTag().size() > 5) {
             if ((*it)->getTag().substr(5, 5) == "exec:" || (*it)->getTag().substr(5, 5) == "EXEC:") {
               SendQSPEvent(QSP_EVT_EXECSTRING, (*it)->getTag().substr(5 + 5));
@@ -636,6 +643,7 @@ int LocationDescription::handle(int type, int par1, int par2)
 
 bool LocationDescription::reload()
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (QSPGetMainDesc() == 0) {
     scrollDelta = 0;
     clear();
@@ -651,9 +659,9 @@ bool LocationDescription::reload()
     ParseTextH(QSPGetMainDesc(), *this, _links);
     // scroll if text was added
     if (QSPIsMainDescChanged() && !IsFullRefresh() && _items.size() > 0){
-      std::cerr<<"add text need scroll!"<<ois<<'\t'<<_items.size()<<std::endl;
+      //std::cerr<<"add text need scroll!"<<ois<<'\t'<<_items.size()<<std::endl;
       placeWidgets();
-      selectItem(_items.size()-1);
+      selectItem(_items.size()-1,false);
     }
     return true;
   }
@@ -667,6 +675,7 @@ links_vector LocationDescription::getLinks()
 
 bool AdditionalDescription::reload()
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (QSPGetVarsDesc() == 0) {
     clear();
     bool updateNeeded = _rawValue.size() > 0;
@@ -741,11 +750,6 @@ int ObjectsDialog::handle(int type, int par1, int par2)
   if (type == EVT_POINTERUP && eventInside(par1, par2)) {
     for (lbitem_cit it = _items.begin(); it < _items.end(); ++it) {
       if ((*it)->eventInside(par1, par2)) {
-        //if( (*it)->isVisible() && (*it)->GetCanBeFocused() ){
-        //(*it)->setFocused(true);
-        //WidgetLeaveHandler(this,false);
-        //Update();
-        //}
         std::string tag((*it)->getTag());
         if (tag.size() > 0) {
           index = atoi(tag.c_str());
@@ -753,10 +757,8 @@ int ObjectsDialog::handle(int type, int par1, int par2)
 
         if (index != QSPGetSelObjectIndex()) {
           (*it)->setFocused(true);
-          update();
+          //update();
           SendQSPEvent(QSP_EVT_SETOBJINDEX, "", index);
-          //(*it)->setFocused(true);
-          //Update();
         } else {
           onLeave.emit(this, false);
           update();
@@ -771,6 +773,7 @@ int ObjectsDialog::handle(int type, int par1, int par2)
 
 bool ObjectsDialog::reload()
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   bool updateNeeded = false;
 
   long n_objects = QSPGetObjectsCount();
@@ -806,10 +809,11 @@ bool ObjectsDialog::reload()
       sprintf(tag, "%ld", i);
       PBListBoxItem *newItem = addItem(ClearHTMLTags(str_desc), std::string(tag));
 
-      if (i == sel_index) {
+      /*if (i == sel_index) {
         newItem->setFocused(true);
-      }
+      }*/
     }
+    selectItem(sel_index,false);
   }
 
   return updateNeeded;
@@ -833,9 +837,7 @@ std::string ObjectsDialog::getCurrentObjectDesc()
   return str_desc;
 }
 
- ActionsDialog::ActionsDialog(std::string name, PBWidget * parent):PBListBox(name, parent)
-                                //,
-    //FocusedItemChangedSlot(this, &ActionsDialog::FocusedItemChangedHandler)
+ActionsDialog::ActionsDialog(std::string name, PBWidget * parent):PBListBox(name, parent)
 {
   onFocusedWidgetChanged.connect(sigc::mem_fun(this, &ActionsDialog::FocusedItemChangedHandler));
 }
@@ -845,8 +847,6 @@ void ActionsDialog::FocusedItemChangedHandler(PBWidget * sender)
   int index = -1;
   PBWidget *fc = getFocusedWidget();
   if (fc != 0) {
-    //std::string tag (((PBListBoxItem *)listBox.GetFocusedWidget())->getTag());
-    //index = atoi(tag.c_str());
     index = atoi(fc->getTag().c_str());
   }
   QSPSetSelActionIndex(index, QSP_FALSE);
@@ -880,7 +880,7 @@ int ActionsDialog::handle(int type, int par1, int par2)
       if ((*it)->eventInside(par1, par2)) {
         if ((*it)->isVisible() && (*it)->canBeFocused()) {
           (*it)->setFocused(true);
-          update();
+          //update();
         }
         if ((*it)->getTag().size() > 5) {
           if ((*it)->getTag().substr(5, 5) == "exec:" || (*it)->getTag().substr(5, 5) == "EXEC:") {
@@ -898,6 +898,7 @@ int ActionsDialog::handle(int type, int par1, int par2)
 
 bool ActionsDialog::reload(bool force)
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   bool updateNeeded = false;
 
   long n_actions = QSPGetActionsCount();
@@ -933,10 +934,10 @@ bool ActionsDialog::reload(bool force)
       sprintf(tag, "%ld", i);
       PBListBoxItem *newItem = addItem(ClearHTMLTags(str_desc), std::string(tag));
 
-      if (i == sel_index)
-        newItem->setFocused(true);
+      //if (i == sel_index)newItem->setFocused(true);
     }
-    //fprintf(stderr, "\n ActionsDialog reloaded");
+    selectItem(sel_index,false);
+    fprintf(stderr, "\n ActionsDialog reloaded");
   }
   return updateNeeded;
 }

@@ -70,7 +70,8 @@ void QSPCallbacks::SetTimer(long msecs)
 
 void QSPCallbacks::RefreshInt(QSP_BOOL isRedraw)
 {
-  SendIntEvent(INT_EVT_UPDATE);
+  std::cerr<<__PRETTY_FUNCTION__<<isRedraw<<std::endl;
+  /*if(isRedraw)*/SendIntEvent(INT_EVT_UPDATE);
 }
 
 void QSPCallbacks::SetInputStrText(const QSP_CHAR * text)

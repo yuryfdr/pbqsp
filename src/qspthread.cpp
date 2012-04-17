@@ -1,5 +1,5 @@
 /* Copyright (C) 2009 AI */
-/* Copyright (C) 2011 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
+/* Copyright (C) 2011-2012 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
 /*
 * This library is free software; you can redistribute it and/or modify
 * it under the terms of the GNU Lesser General Public License as published by
@@ -220,6 +220,7 @@ void InterfaceEventsTimer()
       IntEventQue.pop();
       switch (ev.type) {
       case INT_EVT_UPDATE:
+        std::cerr<<__PRETTY_FUNCTION__<<"bui"<<std::endl;
         IntEventProcessed = false;
         mainScreen.updateUI(false);
         IntEventProcessed = true;
