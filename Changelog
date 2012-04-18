@@ -1,6 +1,7 @@
-17.04.2012
+18.04.2012
    v 5.7.0.2
-   - fix expancive redraw
+   - fix multiple \n parce
+   - minimize redraw
 13.04.2012
    - fix menu cancelling bug
    - fixes due to pbtk changes 

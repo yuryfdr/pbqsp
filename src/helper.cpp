@@ -102,8 +102,8 @@ void ParseChildren(PBListBox & listBox,
   insert_op ciop = iop;
   for (; tr.is_valid(it) && it != itp.end(); it = tr.next_sibling(it)) {
 #ifdef HTMLDEBUG
-    std::cerr << it->isTag() << '\t' << tr.depth(it) << "\t::" <<
-        to_utf8(it->text().c_str(), koi8_to_unicode) << "::" << std::endl;
+    std::cerr << it->isTag() << '\t' << tr.depth(it) << "\t:tag:" <<
+        to_utf8(it->text().c_str(), koi8_to_unicode) << ":/tag:" << std::endl;
 #endif
     if (it->isTag()) {
       ciop.to_parent = false;
@@ -168,7 +168,7 @@ void ParseChildren(PBListBox & listBox,
       }
     } else {
 #ifdef HTMLDEBUG
-      std::cerr << "parbefore:" << it->text() << std::endl;
+      std::cerr << "parbefore:" << it->text() << ":"<<std::endl;
 #endif
       std::string par(to_utf8(it->text().c_str(), koi8_to_unicode));
       if (par.size() > 0) {
@@ -181,8 +181,7 @@ void ParseChildren(PBListBox & listBox,
                                                koi8_to_unicode),
                                        itm);
           ctl->setWidgetFont(ciop.font);
-          if (!ciop.is_link)
-            ctl->setCanBeFocused(false);
+          //if (!ciop.is_link)ctl->setCanBeFocused(false);
           itm->addWidget(ctl);
           if (ciop.item) {
             ciop.item = NULL;
@@ -190,19 +189,25 @@ void ParseChildren(PBListBox & listBox,
             ciop.is_link = false;
           }
         } else {
-          if (it->text().compare(0, 2, "</") != 0) {  //skip broken html tags
+          if (it->text().compare(0, 2, "</") != 0 && it->text()!="\n") {  //skip broken html tags
 #ifdef HTMLDEBUG
-            std::cerr << "it text:" << it->text() << std::endl;
+            std::cerr << "it text:" << it->text() << ":"<<std::endl;
 #endif
             std::string tta=to_utf8(it->text().c_str(),koi8_to_unicode);
             
-            PBListBoxItem *newItem;
+            PBListBoxItem *newItem=NULL;
             if (!ciop.is_link){
               std::stringstream sss(tta);
+              int inl=0;
               while(!sss.eof() || !sss.fail()){
                 std::string ppar;
                 std::getline(sss,ppar);
+                if(ppar.empty()){//skip multiple empty lines
+                  //std::cerr<<"elc:"<<inl<<std::endl;
+                  if((++inl)!=1)continue;
+                }else inl=0;
                 newItem = listBox.addItem(ppar,ciop.tag,ciop.align);
+                //std::cerr<<"add ppar:"<<ppar<<":"<<inl<<":\n";
                 newItem->setCanBeFocused(false);
                 if (ciop.font != defaultFont)
                   newItem->setWidgetFont(ciop.font);
@@ -212,7 +217,7 @@ void ParseChildren(PBListBox & listBox,
               if (ciop.font != defaultFont)
                 newItem->setWidgetFont(ciop.font);
             }
-            
+
             ciop.item = newItem;
             ciop.to_parent = false;
             ciop.is_link = false;
@@ -234,7 +239,7 @@ void ParseTextH(const char *src_text, PBListBox & listBox,
     return;
 
 #ifdef HTMLDEBUG
-  std::cerr << "text to parce:" << to_utf8(src_text, koi8_to_unicode) << std::endl;
+  std::cerr << "text to parce:" << to_utf8(src_text, koi8_to_unicode) <<":"<<std::endl;
 #endif
   std::string text(src_text);   //=to_utf8((const unsigned char *)src_text, koi8_to_unicode);
   size_t aux_symb_pos;
@@ -254,8 +259,8 @@ void ParseTextH(const char *src_text, PBListBox & listBox,
   tree < htmlcxx::HTML::Node >::iterator it = tr.begin();
   for (; tr.is_valid(it) && it != tr.end(); it = tr.next_sibling(it)) {
 #ifdef HTMLDEBUG
-    std::cerr << it->isTag() << '\t' << tr.depth(it) << "\t::" <<
-        to_utf8(it->text().c_str(), koi8_to_unicode) << "::" << std::endl;
+    std::cerr << it->isTag() << '\t' << tr.depth(it) << "\t:tag:" <<
+        to_utf8(it->text().c_str(), koi8_to_unicode) << ":/tag:" << std::endl;
 #endif
     insert_op op;
     ParseChildren(listBox, links, tr, it, op);

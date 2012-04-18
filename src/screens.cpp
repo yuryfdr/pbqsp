@@ -273,7 +273,7 @@ bool IsFullRefresh()
 
 void MainScreen::updateUI(bool forceUpdate)
 {
-  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+  std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (IsFullRefresh())
     SendQSPEvent(QSP_EVT_SAVEGAME, "autosave.sav");
 
@@ -490,9 +490,11 @@ int GameScreen::handle(int type, int par1, int par2)
 
 void GameScreen::update(bool refresh)
 {
-  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+  std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   PBWidget::update(refresh);
+#ifndef _NEW_DEV_
   FineUpdate();
+#endif
 }
 
 bool GameScreen::reload()

@@ -22,7 +22,7 @@ endif
 
 ifeq ($(BUILD),arm_gnueabi)
 CXXFLAGS+=-I/usr/local/pocketbook_eabi/include -DHAS_NO_IV_GET_DEFAULT_FONT\
-  -I/usr/local/pocketbook_eabi/include/sigc++-2.0 -DHAVE_SOUND=1
+  -I/usr/local/pocketbook_eabi/include/sigc++-2.0 -DHAVE_SOUND=1 -D_NEW_DEV_
 LDFLAGS+=-L/usr/local/pocketbook_eabi/lib -lungif -lhtmlcxx -lsigc-2.0
 endif
 
