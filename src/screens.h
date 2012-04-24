@@ -154,7 +154,8 @@ class GameScreen:public PBWidget {
   void initMessage();
   void hideImageScreen() {
     imageScreen.setVisible(false);
- } protected:
+  } 
+ protected:
   bool image_shown;
   virtual void placeWidgets();
   void switchObjectsScreen();
@@ -162,6 +163,8 @@ class GameScreen:public PBWidget {
 
   void ActionExecutedHandler(PBWidget * sender);
   void ButtonPressedHandler(PBWidget * sender);
+  void onMenuButton(PBWidget*);
+  static void HandleMainMenuItem(int index);
   void DialogLeavedHandler(PBWidget * sender, bool next);
   void message_end(PBDialog *, bool);
  public:
@@ -184,13 +187,23 @@ class MainScreen:public PBWidget {
   virtual void placeWidgets();
 
  public:
+  enum layout{
+    OLD_L,
+    ALL_L
+  }screenLayout;
+  int orient;
+  
   bool links_in_act_dialog;
   bool show_act_dlg;
   MainScreen(std::string name, PBWidget * parent);
   virtual int handle(int type, int par1, int par2);
-
+  void loadConfig();
+  void saveConfig();
+  static void addRecent(const char*path);
+  void openGame(const char*file);
   GameScreen *getGameScreen();
   void updateUI(bool forceUpdate = true);
 };
 
 #endif
+

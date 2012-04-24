@@ -82,6 +82,9 @@ void *QSPThreadProc(void *ptr)
       case QSP_EVT_EXECSTRING:
         if (!QSPExecString((const QSP_CHAR *)ev.p_str.c_str(), QSP_TRUE))
           ShowError();
+        else if(ev.p_str.find("OPENQST")!=ev.p_str.npos){
+          chdir(GetQuestPath().c_str());
+        }
         break;
       case QSP_EVT_EXECSELACTION:
         if (!QSPExecuteSelActionCode(QSP_TRUE))

@@ -31,7 +31,31 @@
 
 #include "qsp/qsp.h"
 
+enum mmm {
+  MAINMENU_OPEN = 100,
+  MAINMENU_FONT,
+  MAINMENU_SELECTFONT,
+  MAINMENU_ORIENTATION,
+  MAINMENU_QUICKSAVE,
+  MAINMENU_QUICKLOAD,
+  MAINMENU_RESTART,
+  MAINMENU_ABOUT,
+  MAINMENU_EXIT,
+  ITM_RESN,//resent files
+  ITM_RSNT0,
+  ITM_RSNT1,
+  ITM_RSNT2,
+  ITM_RSNT3,
+  ITM_RSNT4,
+  ITM_RSNT5,
+  ITM_RSNT6,
+  ITM_RSNT7,
+  ITM_RSNT8,
+  ITM_RSNT9
+};
+
 extern pthread_mutex_t int_mutex;
 extern pthread_mutex_t qsp_mutex;
 
 #endif
+

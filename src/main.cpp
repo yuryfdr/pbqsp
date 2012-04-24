@@ -16,9 +16,9 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 #include "main.h"
+#include <sstream>
 
-ifont *defaultFont;
-ifont *boldFont, *biggerFont;
+ifont *defFont,*boldFont,*biggerFont;
 namespace {
   struct initializer{
     initializer(){
@@ -31,57 +31,155 @@ extern MainScreen mainScreen;
 std::string prevGame;
 
 iconfig *config = 0;
-#define CONFIG_FONT "Font"
+/*#define CONFIG_FONT "Font"
 #define CONFIG_GAME "Game"
 iconfigedit QSPConfig[] = {
   {CFG_TEXT, NULL, "Шрифт", NULL, CONFIG_FONT, "LiberationSans, 22", NULL, NULL},
   {CFG_TEXT, NULL, "Книга", NULL, CONFIG_GAME, "", NULL, NULL},
   {0, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+};*/
+
+imenu rsntFile[] = {
+  {0, ITM_RSNT0, NULL, NULL},
+  {0, ITM_RSNT1, NULL, NULL},
+  {0, ITM_RSNT2, NULL, NULL},
+  {0, ITM_RSNT3, NULL, NULL},
+  {0, ITM_RSNT4, NULL, NULL},
+  {0, ITM_RSNT5, NULL, NULL},
+  {0, ITM_RSNT6, NULL, NULL},
+  {0, ITM_RSNT7, NULL, NULL},
+  {0, ITM_RSNT8, NULL, NULL},
+  {0, ITM_RSNT9, NULL, NULL},
+  {0, 0, NULL, NULL}
 };
 
-void LoadConfig()
+static imenu fontSizeMenu[] = {
+  {ITEM_ACTIVE, 16, "16", NULL},
+  {ITEM_ACTIVE, 18, "18", NULL},
+  {ITEM_ACTIVE, 20, "20", NULL},
+  {ITEM_ACTIVE, 22, "22", NULL},
+  {ITEM_ACTIVE, MAINMENU_SELECTFONT, "Выбрать шрифт", NULL},
+  {0, 0, NULL, NULL}
+};
+
+static imenu optionsMenu[] = {
+  {ITEM_SUBMENU, MAINMENU_FONT, "Шрифт", fontSizeMenu},
+  {ITEM_ACTIVE, MAINMENU_ORIENTATION, "Ориентация", NULL},
+  {0, 0, NULL, NULL}
+};
+
+static imenu mainMenu[] = {
+  {ITEM_HEADER, 0, "QSP", NULL},
+  {ITEM_ACTIVE, MAINMENU_OPEN, "Открыть книгу", NULL},
+  {ITEM_HIDDEN, MAINMENU_FONT, "Последние открытые", rsntFile},
+  {ITEM_ACTIVE, MAINMENU_QUICKSAVE, "Быстрое сохранение", NULL},
+  {ITEM_ACTIVE, MAINMENU_QUICKLOAD, "Быстрая загрузка", NULL},
+  {ITEM_ACTIVE, MAINMENU_RESTART, "Начать заново", NULL},
+  {ITEM_SEPARATOR, 0, NULL, NULL},
+  {ITEM_SUBMENU, MAINMENU_FONT, "Настройки", optionsMenu},
+  {ITEM_SEPARATOR, 0, NULL, NULL},
+  {ITEM_ACTIVE, MAINMENU_ABOUT, "О...", NULL},
+  {ITEM_SEPARATOR, 0, NULL, NULL},
+  {ITEM_ACTIVE, MAINMENU_EXIT, "Выход", NULL},
+  {0, 0, NULL, NULL}
+};
+
+void GameScreen::onMenuButton(PBWidget*){
+  IntEventProcessed = false;
+  OpenMenu(mainMenu, 0, menuButton.x(), menuButton.y(), HandleMainMenuItem);
+}
+
+void MainScreen::addRecent(const char *s)
+{
+  for (int i = 0; i < 9; ++i) {
+    if (rsntFile[i].text && strcmp(rsntFile[i].text, s) == 0) {
+      if (i != 0)
+        std::swap(rsntFile[i].text, rsntFile[0].text);
+      return;
+    }
+  }
+  if (rsntFile[9].text)
+    free(rsntFile[9].text);
+  for (int i = 8; i >= 0; --i) {
+    if (rsntFile[i].text) {
+      rsntFile[i + 1].text = rsntFile[i].text;
+      rsntFile[i + 1].type = ITEM_ACTIVE;
+    }
+  }
+  rsntFile[0].text = strdup(s);
+  rsntFile[0].type = ITEM_ACTIVE;
+  mainMenu[2].type = ITEM_SUBMENU;
+}
+
+void MainScreen::loadConfig()
 {
 #ifdef __EMU__
   LoadKeyboard("EN_RU.kbd");
 #endif
-  config = OpenConfig(CONFIGPATH "/qsp.cfg", QSPConfig);
+  config = OpenConfig(CONFIGPATH "/qsp.cfg", NULL/*QSPConfig*/);
   printf("%s\n", CONFIGPATH "/qsp.cfg");
-  char *fontName = ReadString(config, CONFIG_FONT, "LiberationSans, 22");
+  char *fontName = ReadString(config, "Font", "LiberationSans, 22");
   std::string font(fontName);
 
   size_t div_pos = font.find_first_of(',');
   if (div_pos != std::string::npos) {
     int size = atoi(font.substr(div_pos + 1).c_str());
     std::string fontname = font.substr(0, div_pos);
-    ifont *oldFont = defaultFont;
+    ifont *oldFont = defFont;
     ifont *newFont = OpenFont((char *)fontname.c_str(), size, 1);
     if (newFont)
-      defaultFont = newFont;
+      defFont = newFont;
     if (oldFont)
       CloseFont(oldFont);
     boldFont = OpenFont((char *)(fontname + "-Bold").c_str(), size, 1);
     biggerFont = OpenFont((char *)(fontname + "-Bold").c_str(), size + 2, 1);
   }
-  if (!defaultFont) {
-    defaultFont = OpenFont(DEFAULTFONT, 18, 1);
+  if (!defFont) {
+    defFont = OpenFont(DEFAULTFONT, 18, 1);
     boldFont = OpenFont(DEFAULTFONTB, 18, 1);
-    defaultFont = OpenFont(DEFAULTFONTB, 20, 1);
+    biggerFont = OpenFont(DEFAULTFONTB, 20, 1);
   }
 
-  if (prevGame.size() == 0) {
-    char *gameName = ReadString(config, CONFIG_GAME, 0);
-    if (gameName != 0)
-      prevGame = gameName;
+  for (int i = 9; i >= 0; --i) {
+    std::stringstream str;
+    str << "RF" << i;
+    char *s = ReadString(config, str.str().c_str(), NULL);
+    if (s && *s) {
+      MainScreen::addRecent(s);
+      if(i==0 && prevGame.empty()){
+        prevGame=s;
+      }
+    }
   }
+  
+  if (prevGame.size() == 0) {//old compat remove!
+    char *gameName = ReadString(config, "Game", 0);
+    if (gameName != 0){
+      prevGame = gameName;
+      DeleteString(config, "Game");
+    }
+  }
+  orient = ReadInt(config, "Orientation",GetGlobalOrientation());
+
+  setWidgetFont(defFont);
+  SetOrientation(orient);
 }
 
-void SaveConfig()
+void MainScreen::saveConfig()
 {
   char fontName[80];
-  sprintf(fontName, "%s,%d", defaultFont->name, defaultFont->size);
-  WriteString(config, CONFIG_FONT, fontName);
+  sprintf(fontName, "%s,%d", defFont->name, defFont->size);
+  WriteString(config, "Font", fontName);
 
-  WriteString(config, CONFIG_GAME, (char *)QSPGetQstFullPath());
+  for (int i = 9; i >= 0; --i) {
+//    printf("sr:%d\n",i);
+    if (rsntFile[i].text) {
+      std::stringstream str1;
+      str1 << "RF" << i;
+      WriteString(config, str1.str().c_str(), rsntFile[i].text);
+    }
+  }
+  WriteInt(config, "Orientation",orient);
 
   SaveConfig(config);
   CloseConfig(config);
@@ -94,33 +192,33 @@ int main_handler(int type, int par1, int par2)
 {
 
   if (type == EVT_INIT) {
-    LoadConfig();
+    mainScreen.loadConfig();
     pthread_t qspThread;
     pthread_mutex_init(&int_mutex, NULL);
     pthread_mutex_init(&qsp_mutex, NULL);
     int res = pthread_create(&qspThread, NULL, QSPThreadProc, NULL);
-
-    mainScreen.setWidgetFont(defaultFont);
-    SetOrientation(GetGlobalOrientation());
 
     QSPInit();
     QSPCallbacks::SetQSPCallbacks();
 
     InterfaceEventsTimer();
 
-    if (prevGame.size() > 0)
+    if (prevGame.size() > 0){
       SendQSPEvent(QSP_EVT_OPENGAME, prevGame);
+      MainScreen::addRecent(prevGame.c_str());
+    }
   }
 
   mainScreen.handle(type, par1, par2);
 
   if (type == EVT_EXIT) {
-    SaveConfig();
+    mainScreen.saveConfig();
     QSPCallbacks::DeInit();
     QSPDeInit();
-    CloseFont(defaultFont);
+    CloseFont(defFont);
+    CloseFont(boldFont);
+    CloseFont(biggerFont);
   }
-
   return 0;
 }
 

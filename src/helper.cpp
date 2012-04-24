@@ -87,7 +87,7 @@ struct insert_op {
    std::string tag;
   PBListBoxItem *item;
   bool to_parent;
-   insert_op():font(defaultFont), align(8), is_link(false), item(NULL), to_parent(false) {
+   insert_op():font(defFont), align(8), is_link(false), item(NULL), to_parent(false) {
   } insert_op(const insert_op & i):font(i.font), align(i.align),
       is_link(i.is_link), tag(i.tag), item(NULL), to_parent(i.to_parent) {
   }
@@ -111,13 +111,19 @@ void ParseChildren(PBListBox & listBox,
         ciop.is_link = true;
         it->parseAttributes();
         //std::cerr<<it->attribute("href").second<<'\t'<<(it.begin()!=it.end())<<std::endl;
-        if (it.begin() != it.end())
+        std::string hr=it->attribute("href").second;
+//          std::cerr<<"hrfnd:"<<hr.find("OPENQST")<<std::endl;
+        if(hr.find("OPENQST")!=hr.npos){
+          hr=to_utf8(hr, koi8_to_unicode);
+          hr=convertbackslash(hr);
+        }
+        if (it.begin() != it.end()){
           links.push_back(make_pair
                           (std::string("[") + to_utf8(it.begin()->text().c_str(), koi8_to_unicode)
-                           + std::string("]"), it->attribute("href").second));
-        else
+                           + std::string("]"), hr));
+        }else
           ciop.to_parent = true;
-        ciop.tag = std::string("link:") + it->attribute("href").second;
+        ciop.tag = std::string("link:") + hr;//it->attribute("href").second;
       } else if (it->tagName() == "center" || it->tagName() == "CENTER") {
         ciop.align = 2;
       } else if (it->tagName() == "left" || it->tagName() == "LEFT") {
@@ -209,12 +215,12 @@ void ParseChildren(PBListBox & listBox,
                 newItem = listBox.addItem(ppar,ciop.tag,ciop.align);
                 //std::cerr<<"add ppar:"<<ppar<<":"<<inl<<":\n";
                 newItem->setCanBeFocused(false);
-                if (ciop.font != defaultFont)
+                if (ciop.font != defFont)
                   newItem->setWidgetFont(ciop.font);
               }
             }else{
               newItem = listBox.addItem(tta,ciop.tag,ciop.align);
-              if (ciop.font != defaultFont)
+              if (ciop.font != defFont)
                 newItem->setWidgetFont(ciop.font);
             }
 

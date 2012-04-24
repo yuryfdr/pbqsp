@@ -25,9 +25,9 @@
 #include "qsp/qsp.h"
 #include "qsp/bindings/bindings_config.h"
 
-#define APP_VERSION "5.7.0.2"
+#define APP_VERSION "5.7.0.3"
 
-extern ifont *defaultFont, *boldFont, *biggerFont;
+extern ifont *defFont, *boldFont, *biggerFont;
 
 void ShowError();
 std::string GetQuestPath();

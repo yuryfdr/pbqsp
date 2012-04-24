@@ -1,4 +1,3 @@
-/* Copyright (C) 2009 AI */
 /* Copyright (C) 2011-2012 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
 /*
 * This library is free software; you can redistribute it and/or modify
@@ -16,45 +15,11 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 #include "screens.h"
+#include "main.h"
 #include "pbtk/pbfilechooser.h"
 
 MainScreen mainScreen("mainScreen", 0);
-
-enum mmm {
-  MAINMENU_OPEN = 100,
-  MAINMENU_FONT,
-  MAINMENU_SELECTFONT,
-  MAINMENU_ORIENTATION,
-  MAINMENU_QUICKSAVE,
-  MAINMENU_QUICKLOAD,
-  MAINMENU_RESTART,
-  MAINMENU_ABOUT,
-  MAINMENU_EXIT
-};
-
-static imenu fontSizeMenu[] = {
-  {ITEM_ACTIVE, 16, "16", NULL},
-  {ITEM_ACTIVE, 18, "18", NULL},
-  {ITEM_ACTIVE, 20, "20", NULL},
-  {ITEM_ACTIVE, 22, "22", NULL},
-  {ITEM_ACTIVE, MAINMENU_SELECTFONT, "Выбрать шрифт", NULL},
-  {0, 0, NULL, NULL}
-};
-
-static imenu mainMenu[] = {
-  {ITEM_HEADER, 0, "QSP", NULL},
-  {ITEM_ACTIVE, MAINMENU_OPEN, "Открыть книгу", NULL},
-  {ITEM_SUBMENU, MAINMENU_FONT, "Шрифт", fontSizeMenu},
-  {ITEM_ACTIVE, MAINMENU_ORIENTATION, "Ориентация", NULL},
-  {ITEM_ACTIVE, MAINMENU_QUICKSAVE, "Быстрое сохранение", NULL},
-  {ITEM_ACTIVE, MAINMENU_QUICKLOAD, "Быстрая загрузка", NULL},
-  {ITEM_ACTIVE, MAINMENU_RESTART, "Начать заново", NULL},
-  {ITEM_SEPARATOR, 0, NULL, NULL},
-  {ITEM_ACTIVE, MAINMENU_ABOUT, "О...", NULL},
-  {ITEM_SEPARATOR, 0, NULL, NULL},
-  {ITEM_ACTIVE, MAINMENU_EXIT, "Выход", NULL},
-  {0, 0, NULL, NULL}
-};
+extern imenu rsntFile[];
 
 bool IsQuestOpened()
 {
@@ -68,59 +33,44 @@ bool CompareStr(std::string str1, char *str2)
   return str1 == str2;
 }
 
-/*void dir_selected(char *path)
-{
-  std::string fileName;
-
-  DIR *dir = iv_opendir(path);
-  if (dir != 0){
-    struct dirent *ep;
-    printf("%s\n",path);
-    while (ep = iv_readdir(dir)){
-      std::string ext = GetFileExtension(ep->d_name);
-      if (ext == "QSP" || ext == "qsp" || ext == "GAM" || ext == "gam"){
-        fileName += path;
-        fileName += "/";
-        fileName += ep->d_name;
-        break;
-      }
-    }
-    iv_closedir(dir);
-  }else
-    Message(ICON_ERROR, "Error", "Не удалось открыть выбранный каталог", 2000);
-  printf("%s\n",fileName.c_str());
-  if (fileName.size() == 0)
-    Message(ICON_ERROR, "Error", "Не найден файл qsp или gam", 2000);
-  else{
-    //fileName = utf8_to((const unsigned char *)fileName.c_str(), koi8_to_unicode);
-    if (!QSPLoadGameWorld(fileName.c_str()))
-      ShowError();
-    chdir(GetQuestPath().c_str());
-    QSPRestartGame(QSP_TRUE);
+void MainScreen::openGame(const char*file){
+  if (!QSPLoadGameWorld(file)){
+    ShowError();
+    return;
   }
-}*/
+  addRecent(file);
+  chdir(GetQuestPath().c_str());
+  QSPRestartGame(QSP_TRUE);
+  getGameScreen()->hideImageScreen();
+}
+
 void dir_selected(int isok, PBFileChooser * fc)
 {
   if (isok) {
     std::string path = fc->getPath();
-    if (!QSPLoadGameWorld(path.c_str()))
-      ShowError();
-    chdir(GetQuestPath().c_str());
-    QSPRestartGame(QSP_TRUE);
-    mainScreen.getGameScreen()->hideImageScreen();
+    mainScreen.openGame(path.c_str());
   }
 }
 
 void SetDefaultFont(std::string name, int size)
 {
   ifont *font = OpenFont((char *)name.c_str(), size, 1);
-  ifont *oldFont = defaultFont;
-  defaultFont = font;
-  mainScreen.setWidgetFont(defaultFont);
-  //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
+  ifont *oldFont = defFont;
+  defFont = font;
+  ifont *oldbFont = boldFont;
+  boldFont = OpenFont((char *)(name+"-Bold").c_str(), size, 1);
+  ifont *oldbigFont = biggerFont;
+  biggerFont = OpenFont((char *)(name + "-Bold").c_str(), size + 2, 1);
+  mainScreen.setWidgetFont(defFont);
+  mainScreen.replaceWidgetFont(oldbigFont,biggerFont); 
+  mainScreen.replaceWidgetFont(oldbFont,boldFont); 
   mainScreen.updateUI();
   if (oldFont != 0)
     CloseFont(oldFont);
+  if (oldbFont != 0)
+    CloseFont(oldbFont);
+  if (oldbigFont != 0)
+    CloseFont(oldbigFont);
 }
 
 void font_selected(char *fontr, char *fontb, char *fonti, char *fontbi)
@@ -136,8 +86,8 @@ void font_selected(char *fontr, char *fontb, char *fonti, char *fontbi)
 
 void orientation_selected(int direction)
 {
+  mainScreen.orient=direction;
   SetOrientation(direction);
-  //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
   mainScreen.updateUI(true);
 }
 
@@ -159,14 +109,12 @@ bool GetVarValue(const QSP_CHAR * name, int *num, QSP_CHAR ** str)
 }
 
 //static char dirbuf[1024];
-void HandleMainMenuItem(int index)
+void GameScreen::HandleMainMenuItem(int index)
 {
-  //std::cerr<<__PRETTY_FUNCTION__<<index<<std::endl;
   std::string fileName;
   IntEventProcessed = true;
   switch (index) {
   case MAINMENU_OPEN:
-    //OpenDirectorySelector("Выберите каталог", dirbuf, 1024, dir_selected);
     OpenFileChooser("Открыть игру", IsQuestOpened()?GetQuestPath().c_str():"/mnt/ext1", "{*.qsp|*.gam}\n*", 0,
                     (pb_dialoghandler) dir_selected);
     break;
@@ -207,8 +155,8 @@ void HandleMainMenuItem(int index)
     CloseApp();
     break;
   case MAINMENU_SELECTFONT:
-    OpenFontSelector("Выберите шрифт", (char *)std::string(defaultFont->name).c_str(),
-                     defaultFont->size, font_selected);
+    OpenFontSelector("Выберите шрифт", (char *)std::string(defFont->name).c_str(),
+                     defFont->size, font_selected);
     break;
   case MAINMENU_ORIENTATION:
     OpenRotateBox(orientation_selected);
@@ -219,15 +167,29 @@ void HandleMainMenuItem(int index)
             "\nАлександр Грибанов (AI)© 2009\n"
             "Юрий Федорченко (yuryfdr)© 2011-2012", 5000);
     break;
+  case ITM_RSNT0:
+  case ITM_RSNT1:
+  case ITM_RSNT2:
+  case ITM_RSNT3:
+  case ITM_RSNT4:
+  case ITM_RSNT5:
+  case ITM_RSNT6:
+  case ITM_RSNT7:
+  case ITM_RSNT8:
+  case ITM_RSNT9:
+    if(rsntFile[index-ITM_RSNT0].text){
+      mainScreen.openGame(rsntFile[index-ITM_RSNT0].text);
+    }
+    break;
   default:
     if(-1!=index)
-    SetDefaultFont(defaultFont->name, index);
+    SetDefaultFont(defFont->name, index);
     break;
   }
 }
 
- MainScreen::MainScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
-gameScreen("gameScreen", this)
+MainScreen::MainScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
+gameScreen("gameScreen", this),orient(0)
 {
   links_in_act_dialog = false;
   _drawBorder = false;
@@ -306,7 +268,6 @@ objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageD
   _drawBorder = false;
   _leaveOnKeys = false;
   objectsScreen.onLeave.connect(sigc::mem_fun(this, &GameScreen::DialogLeavedHandler));
-  //imageScreen.onLeave.connect(sigc::mem_fun(this,  &GameScreen::DialogLeavedHandler));
 
   addWidget(&actionsDialog);
   addWidget(&menuButton);
@@ -321,7 +282,7 @@ objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageD
 
   imageScreen.setVisible(false);
 
-  menuButton.onPress.connect(sigc::mem_fun(this, &GameScreen::ButtonPressedHandler));
+  menuButton.onPress.connect(sigc::mem_fun(this, &GameScreen::onMenuButton));
   //menuButton.setFocused(true);
   commandBoxButton.onPress.connect(sigc::mem_fun(this, &GameScreen::ButtonPressedHandler));
 }
@@ -334,10 +295,7 @@ void GameScreen::ActionExecutedHandler(PBWidget * sender)
 
 void GameScreen::ButtonPressedHandler(PBWidget * sender)
 {
-  if (sender == &menuButton) {
-    IntEventProcessed = false;
-    OpenMenu(mainMenu, 0, menuButton.x(), menuButton.y(), HandleMainMenuItem);
-  } else if (sender == &commandBoxButton) {
+  if (sender == &commandBoxButton) {
     showCommandBox();
   } else if (sender == &objectsButton) {
     switchObjectsScreen();
@@ -472,8 +430,7 @@ int GameScreen::handle(int type, int par1, int par2)
   if (!handled && type == EVT_KEYPRESS) {
     switch (par1) {
     case KEY_MENU:
-      IntEventProcessed = false;
-      OpenMenu(mainMenu, 0, menuButton.x(), menuButton.y(), HandleMainMenuItem);
+      onMenuButton(&menuButton);
       return 1;
     case KEY_BACK:
       showCommandBox();
