@@ -31,7 +31,7 @@
 #define KBDOPTS 0
 #endif
 
-void handleMainMenuItem(int index);
+//void handleMainMenuItem(int index);
 
 class ObjectsDialog:public PBListBox {
  protected:
@@ -86,10 +86,11 @@ class ActionsDialog:public PBListBox {
 };
 
 class ObjectsScreen:public PBWidget {
- protected:
+public:
   ObjectsDialog objectsDialog;
   AdditionalDescription additionalDescription;
 
+ protected:
   virtual void placeWidgets();
  public:
   ObjectsScreen(std::string name, PBWidget * parent);
@@ -144,10 +145,13 @@ class GameScreen:public PBWidget {
   PBButton menuButton;
   PBButton commandBoxButton;
   PBButton objectsButton;
-  PBLabel versionLabel;
+  //PBLabel versionLabel;
   LocationDescription locationDescription;
   ActionsDialog actionsDialog;
   ObjectsScreen objectsScreen;
+  ObjectsDialog *objectsDialog;
+  AdditionalDescription *additionalDescription;
+
   ImageScreen imageScreen;
  public:
   MessageDialog * messageDialog;

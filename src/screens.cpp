@@ -38,9 +38,10 @@ void MainScreen::openGame(const char*file){
     ShowError();
     return;
   }
-  addRecent(file);
   chdir(GetQuestPath().c_str());
-  QSPRestartGame(QSP_TRUE);
+  QSPOpenSavedGame("autosave.sav",QSP_TRUE);
+  addRecent(file);
+  //QSPRestartGame(QSP_TRUE);
   getGameScreen()->hideImageScreen();
 }
 
@@ -141,6 +142,13 @@ void GameScreen::HandleMainMenuItem(int index)
     }
     SendQSPEvent(QSP_EVT_OPENSAVEDGAME, "quicksave.sav");
     break;
+  case MAINMENU_AUTOLOAD:
+    if (!IsQuestOpened()) {
+      Message(ICON_INFORMATION, "QSP", "Нет открытой книги", 3000);
+      break;
+    }
+    SendQSPEvent(QSP_EVT_OPENSAVEDGAME, "autosave.sav");
+    break;
   case MAINMENU_RESTART:
     if (!IsQuestOpened()) {
       Message(ICON_INFORMATION, "QSP", "Нет открытой книги", 3000);
@@ -181,6 +189,15 @@ void GameScreen::HandleMainMenuItem(int index)
       mainScreen.openGame(rsntFile[index-ITM_RSNT0].text);
     }
     break;
+  case MAINMENU_LAYOUTOLD:
+      mainScreen.screenLayout=MainScreen::OLD_L;
+      mainScreen.updateUI(true);
+    break;
+  case MAINMENU_LAYOUTALL:
+      mainScreen.screenLayout=MainScreen::ALL_L;
+      jkhfkytd
+      mainScreen.updateUI(true);
+    break;
   default:
     if(-1!=index)
     SetDefaultFont(defFont->name, index);
@@ -194,8 +211,7 @@ gameScreen("gameScreen", this),orient(0)
   links_in_act_dialog = false;
   _drawBorder = false;
   addWidget(&gameScreen);
-
-  gameScreen.setVisible(false);
+  //gameScreen.setVisible(false);
 }
 
 int MainScreen::handle(int type, int par1, int par2)
@@ -208,8 +224,10 @@ int MainScreen::handle(int type, int par1, int par2)
 
     gameScreen.setVisible(true);
     gameScreen.setFocused(true);
+    /*if(1){
+      objectsScreen.setVisible(true);
+    }*/
     placeWidgets();
-    //std::cerr<<__PRETTY_FUNCTION__<<"buui"<<std::endl;
     updateUI();
   }
   return PBWidget::handle(type, par1, par2);
@@ -218,9 +236,14 @@ int MainScreen::handle(int type, int par1, int par2)
 void MainScreen::placeWidgets()
 {
   //printf("%s\n", __PRETTY_FUNCTION__);
-#ifdef NETBOOK                  //netbook debuh height
-  setSize(0, 0, ScreenWidth(), 580);
-  gameScreen.setSize(0, 0, ScreenWidth(), 580);
+#ifdef NETBOOK                  //netbook debug height
+  if(orient==0 || orient == 3){
+    setSize(0, orient==3?220:0, ScreenWidth(), 580);
+    gameScreen.setSize(0, orient==3?220:0, ScreenWidth(), 580);
+  }else{
+    setSize(orient==2?220:0, 0, 580, ScreenHeight());
+    gameScreen.setSize( orient==2?220:0, 0, 580, ScreenHeight());
+  }
 #else
   setSize(0, 0, ScreenWidth(), ScreenHeight());
   gameScreen.setSize(0, 0, ScreenWidth(), ScreenHeight());
@@ -235,7 +258,7 @@ bool IsFullRefresh()
 
 void MainScreen::updateUI(bool forceUpdate)
 {
-  std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (IsFullRefresh())
     SendQSPEvent(QSP_EVT_SAVEGAME, "autosave.sav");
 
@@ -259,16 +282,17 @@ void GameScreen::initMessage()
   }
 }
 
- GameScreen::GameScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
-menuButton("QSP", this), commandBoxButton(" K ", this),
-objectsButton("objectsButton", this), versionLabel("versionLabel", this),
-locationDescription("locationDescription", this), actionsDialog("actionsDialog", this),
-objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageDialog(NULL)
+GameScreen::GameScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
+  menuButton("QSP", this), commandBoxButton(" K ", this),
+  objectsButton("objectsButton", this),
+  locationDescription("locationDescription", this), actionsDialog("actionsDialog", this),
+  objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageDialog(NULL)
 {
   _drawBorder = false;
   _leaveOnKeys = false;
   objectsScreen.onLeave.connect(sigc::mem_fun(this, &GameScreen::DialogLeavedHandler));
-
+  objectsDialog=&objectsScreen.objectsDialog;
+  additionalDescription=&objectsScreen.additionalDescription;
   addWidget(&actionsDialog);
   addWidget(&menuButton);
   addWidget(&commandBoxButton);
@@ -277,7 +301,8 @@ objectsScreen("objectsScreen", this), imageScreen("imageScreen", this), messageD
   addWidget(&objectsScreen);
   addWidget(&imageScreen);
 
-  objectsScreen.setVisible(false);
+  if(mainScreen.screenLayout==MainScreen::ALL_L)objectsScreen.setVisible(true);
+  else objectsScreen.setVisible(false);
   objectsButton.onPress.connect(sigc::mem_fun(this, &GameScreen::ButtonPressedHandler));
 
   imageScreen.setVisible(false);
@@ -304,9 +329,10 @@ void GameScreen::ButtonPressedHandler(PBWidget * sender)
 
 void GameScreen::DialogLeavedHandler(PBWidget * sender, bool next)
 {
-  if (sender == &objectsScreen)
+  if (sender == &objectsScreen && 0)
     switchObjectsScreen();
-  else if (sender == &imageScreen) {
+  else if (sender == &imageScreen) {//never?
+    std::cerr<<"Never must appeer!"<<std::endl;
     sender->setVisible(false);
     if (objectsScreen.isVisible())
       objectsScreen.setFocused(true);
@@ -319,8 +345,9 @@ void GameScreen::DialogLeavedHandler(PBWidget * sender, bool next)
 void GameScreen::placeWidgets()
 {
   int buttonsHeight = 38;
+  int delim=(mainScreen.screenLayout==MainScreen::ALL_L && objectsScreen.isVisible())?2:1;
   int left = x() + BORDER_SPACE, top = y() + BORDER_SPACE,
-      width = w() - BORDER_SPACE * 2, height = h() - BORDER_SPACE * 2;
+      width = (w() - BORDER_SPACE * 2)/delim, height = h() - BORDER_SPACE * 2;
   //int left = x(), top = y(), width = w(), height = h();
 
   menuButton.setMaxWidth(width / 4);
@@ -346,7 +373,7 @@ void GameScreen::placeWidgets()
                                 height * 5 / 7 - buttonsHeight - BORDER_SPACE);
 
     left = x() + BORDER_SPACE;
-    width = w() - BORDER_SPACE * 2;
+    width = (w() - BORDER_SPACE * 2)/delim;
     actionsDialog.setSize(left, locationDescription.y() + locationDescription.h() + BORDER_SPACE,
                           width, height - locationDescription.h() - buttonsHeight - BORDER_SPACE);
   } else {
@@ -360,23 +387,20 @@ void GameScreen::placeWidgets()
                                 height - buttonsHeight - BORDER_SPACE);
 
     left = x() + BORDER_SPACE;
-    width = w() - BORDER_SPACE * 2;
+    width = (w() - BORDER_SPACE * 2)/delim;
     actionsDialog.setSize(left, locationDescription.y() + locationDescription.h() + BORDER_SPACE,
                           width, 10 - BORDER_SPACE);
   }
-  left = x() + BORDER_SPACE;
-  width = w() - BORDER_SPACE * 2;
+  width = (w() - BORDER_SPACE * 2)/delim;
+  left = (mainScreen.screenLayout==MainScreen::ALL_L)?w()/2:0 + BORDER_SPACE;
+  //width = w() - BORDER_SPACE * 2;
   objectsScreen.setSize(left, top + buttonsHeight + BORDER_SPACE, width,
                         height - buttonsHeight - BORDER_SPACE);
-  //imageScreen.setSize(left, top, width, height);
-
-  versionLabel.setSize(objectsButton.x() + objectsButton.w() - 140 - BORDER_SPACE,
-                       objectsButton.y() + BORDER_SPACE, 140, objectsButton.h() - BORDER_SPACE * 2);
-  versionLabel.setVisible(!IsQuestOpened());
 }
 
 void GameScreen::switchObjectsScreen()
 {
+  if(mainScreen.screenLayout==MainScreen::ALL_L)return;
   if (objectsScreen.isVisible()) {
     objectsScreen.setVisible(false);
     locationDescription.setVisible(true);
@@ -505,19 +529,32 @@ void GameScreen::showWindow(int window, bool show)
   case QSP_WIN_INPUT:
     commandBoxButton.setVisible(show);
     break;
-  case QSP_WIN_OBJS:
-    //objectsButton.setVisible(show);
-    //objectsScreen.setVisible(show);
-    break;
+
   case QSP_WIN_ACTS:
     if (!mainScreen.links_in_act_dialog) {
       actionsDialog.setVisible(show);
       mainScreen.show_act_dlg = show;
     }
+  case QSP_WIN_OBJS:
+    objectsButton.setVisible(show);
+    objectsDialog->setVisible(show);
+    if(!objectsDialog->isVisible() && 
+       !additionalDescription->isVisible())
+       objectsScreen.setVisible(false);
+    else objectsScreen.setVisible(true);
     break;
+  case QSP_WIN_VARS:
+    additionalDescription->setVisible(show);
+    if(!objectsDialog->isVisible() && 
+       !additionalDescription->isVisible())
+       objectsScreen.setVisible(false);
+    else objectsScreen.setVisible(true);
+    break;
+  default:
+    std::cerr<<"not handled:"<<window<<std::endl;
   }
   update_needed = true;
-  //update(true);
+  //update();
 }
 
 void GameScreen::showImage(boost::shared_ptr < PBImage > image)
@@ -527,9 +564,8 @@ void GameScreen::showImage(boost::shared_ptr < PBImage > image)
   update(true);
 }
 
- ObjectsScreen::ObjectsScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
-objectsDialog("objectsDialog", this), additionalDescription("additionalDescription",
-                                                            this)
+ObjectsScreen::ObjectsScreen(std::string name, PBWidget * parent):PBWidget(name, parent),
+objectsDialog("objectsDialog", this), additionalDescription("additionalDescription",this)
 {
   _drawBorder = false;
   addWidget(&objectsDialog);

@@ -65,6 +65,9 @@ static imenu fontSizeMenu[] = {
 static imenu optionsMenu[] = {
   {ITEM_SUBMENU, MAINMENU_FONT, "Шрифт", fontSizeMenu},
   {ITEM_ACTIVE, MAINMENU_ORIENTATION, "Ориентация", NULL},
+  {ITEM_SEPARATOR, 0, NULL, NULL},
+  {ITEM_ACTIVE, MAINMENU_LAYOUTOLD, "2 экрана", NULL},
+  {ITEM_ACTIVE, MAINMENU_LAYOUTALL, "1 экран", NULL},
   {0, 0, NULL, NULL}
 };
 
@@ -74,6 +77,7 @@ static imenu mainMenu[] = {
   {ITEM_HIDDEN, MAINMENU_FONT, "Последние открытые", rsntFile},
   {ITEM_ACTIVE, MAINMENU_QUICKSAVE, "Быстрое сохранение", NULL},
   {ITEM_ACTIVE, MAINMENU_QUICKLOAD, "Быстрая загрузка", NULL},
+  {ITEM_ACTIVE, MAINMENU_AUTOLOAD, "Загрузка автосохранения", NULL},
   {ITEM_ACTIVE, MAINMENU_RESTART, "Начать заново", NULL},
   {ITEM_SEPARATOR, 0, NULL, NULL},
   {ITEM_SUBMENU, MAINMENU_FONT, "Настройки", optionsMenu},
@@ -204,8 +208,9 @@ int main_handler(int type, int par1, int par2)
     InterfaceEventsTimer();
 
     if (prevGame.size() > 0){
-      SendQSPEvent(QSP_EVT_OPENGAME, prevGame);
-      MainScreen::addRecent(prevGame.c_str());
+      //SendQSPEvent(QSP_EVT_OPENGAME, prevGame);
+      //MainScreen::addRecent(prevGame.c_str());
+      mainScreen.openGame(prevGame.c_str());
     }
   }
 
