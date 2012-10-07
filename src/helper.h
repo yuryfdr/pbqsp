@@ -37,17 +37,6 @@ void ParseTextH(const char *src_text, PBListBox & listBox, std::vector < std::pa
 std::string ClearHTMLTags(std::string & text);
 void SetStringToCharString(char *dest, const std::string & src, int dest_size);
 
-inline std::string convertbackslash(std::string & str)
-{
-  //std::string str(strin);
-  size_t pos = str.find_first_of("\\");
-  while (pos != str.npos) {
-    str[pos] = '/';
-    pos = str.find_first_of("\\");
-  }
-  return str;
-}
-
 inline std::string convertPath(const std::string & strin)
 {
   std::string str = strin;

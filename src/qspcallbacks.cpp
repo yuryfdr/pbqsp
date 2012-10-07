@@ -1,5 +1,5 @@
 /* Copyright (C) 2009 AI */
-/* Copyright (C) 2011 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
+/* Copyright (C) 2011-2012 Yury P. Fedorchenko (yuryfdr at users.sf.net)  */
 /*
 * This library is free software; you can redistribute it and/or modify
 * it under the terms of the GNU Lesser General Public License as published by
@@ -71,7 +71,14 @@ void QSPCallbacks::SetTimer(long msecs)
 void QSPCallbacks::RefreshInt(QSP_BOOL isRedraw)
 {
   std::cerr<<__PRETTY_FUNCTION__<<isRedraw<<std::endl;
-  /*if(isRedraw)*/SendIntEvent(INT_EVT_UPDATE);
+
+  if(isRedraw){
+    mainScreen.getGameScreen()->locationDescription.reload();
+    mainScreen.getGameScreen()->locationDescription.update();
+    usleep(10000);
+  }
+  else SendIntEvent(INT_EVT_UPDATE);
+  //if(isRedraw)SetHardTimer("INTERFACE_EVENTS_TIMER", InterfaceEventsTimerU,1);
 }
 
 void QSPCallbacks::SetInputStrText(const QSP_CHAR * text)

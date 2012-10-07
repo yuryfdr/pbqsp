@@ -47,6 +47,7 @@ void QSPEventsTimer();
 
 void SendIntEvent(int type, std::string str1 = "");
 void InterfaceEventsTimer();
+void InterfaceEventsTimerU();
 extern bool IntEventProcessed;
 void ShowError();
 #endif

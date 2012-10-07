@@ -213,7 +213,7 @@ void MessageDialog::setMessage(const std::string & msg)
   ParseTextH(msg.c_str(), text, lnks);
 }
 
-void InterfaceEventsTimer()
+void InterfaceEventsTimerU()
 {
   if (IntEventProcessed) {
     pthread_mutex_lock(&int_mutex);
@@ -240,7 +240,6 @@ void InterfaceEventsTimer()
         Message(ICON_ERROR, "Error", (char *)ev.IntEventStr1.c_str(), 50000);
         break;
       case INT_EVT_MESSAGE:
-        //if(gs->messageDialog && )->
         IntEventProcessed = false;
         GameScreen *gs = mainScreen.getGameScreen();
         gs->initMessage();
@@ -253,5 +252,11 @@ void InterfaceEventsTimer()
     }
     pthread_mutex_unlock(&int_mutex);
   }
+}
+
+void InterfaceEventsTimer(){
+  InterfaceEventsTimerU();
   SetHardTimer("INTERFACE_EVENTS_TIMER", InterfaceEventsTimer, 500);
 }
+
+

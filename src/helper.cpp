@@ -160,6 +160,9 @@ void ParseChildren(PBListBox & listBox,
       } else if (it->tagName() == "b" || it->tagName() == "B") {
         ciop.font = boldFont;
         ciop.to_parent = true;
+      } else if (it->tagName() == "i" || it->tagName() == "I") {
+        ciop.font = boldFont;
+        ciop.to_parent = true;
       } else if (it->tagName() == "font" || it->tagName() == "FONT") {
         it->parseAttributes();
         std::string sz = it->attribute("size").second;
@@ -171,15 +174,20 @@ void ParseChildren(PBListBox & listBox,
           if (size > 0)
             ciop.font = biggerFont;
         }
+        ciop.to_parent = true;
       }
     } else {
 #ifdef HTMLDEBUG
-      std::cerr << "parbefore:" << it->text() << ":"<<std::endl;
+      std::cerr << "parbefore:" << it->text() << ":"
+          <<ciop.item<<'\t'<<ciop.to_parent<<'\t'<<ciop.is_link<<std::endl;
 #endif
       std::string par(to_utf8(it->text().c_str(), koi8_to_unicode));
       if (par.size() > 0) {
-        if (ciop.to_parent && (iop.item || ciop.item)) {
-          PBListBoxItem *itm = (ciop.item) ? ciop.item : iop.item;
+        if (ciop.to_parent){
+          PBListBoxItem *itm = NULL;
+          if (iop.item || ciop.item)
+            itm = (ciop.item) ? ciop.item : iop.item;
+          else itm = listBox.addItem("",ciop.tag,ciop.align);
 #ifdef HTMLDEBUG
           std::cerr << "item present:" << itm->getText() << std::endl;
 #endif
@@ -187,13 +195,16 @@ void ParseChildren(PBListBox & listBox,
                                                koi8_to_unicode),
                                        itm);
           ctl->setWidgetFont(ciop.font);
-          //if (!ciop.is_link)ctl->setCanBeFocused(false);
+          if (!ciop.is_link)ctl->setCanBeFocused(false);
           itm->addWidget(ctl);
-          if (ciop.item) {
+          /*if (ciop.item) {
             ciop.item = NULL;
             ciop.to_parent = false;
             ciop.is_link = false;
-          }
+          }*/
+          if(iop.to_parent)iop.item = itm;
+          /*ciop.to_parent = false;
+          ciop.is_link = false;*/
         } else {
           if (it->text().compare(0, 2, "</") != 0 && it->text()!="\n") {  //skip broken html tags
 #ifdef HTMLDEBUG

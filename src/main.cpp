@@ -164,6 +164,7 @@ void MainScreen::loadConfig()
     }
   }
   orient = ReadInt(config, "Orientation",GetGlobalOrientation());
+  screenLayout = (MainScreen::layout)ReadInt(config, "Layout",ALL_L);
 
   setWidgetFont(defFont);
   SetOrientation(orient);
@@ -184,6 +185,7 @@ void MainScreen::saveConfig()
     }
   }
   WriteInt(config, "Orientation",orient);
+  WriteInt(config, "Layout",screenLayout);
 
   SaveConfig(config);
   CloseConfig(config);
@@ -208,8 +210,6 @@ int main_handler(int type, int par1, int par2)
     InterfaceEventsTimer();
 
     if (prevGame.size() > 0){
-      //SendQSPEvent(QSP_EVT_OPENGAME, prevGame);
-      //MainScreen::addRecent(prevGame.c_str());
       mainScreen.openGame(prevGame.c_str());
     }
   }

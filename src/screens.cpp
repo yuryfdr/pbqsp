@@ -17,6 +17,7 @@
 #include "screens.h"
 #include "main.h"
 #include "pbtk/pbfilechooser.h"
+#include <sstream>
 
 MainScreen mainScreen("mainScreen", 0);
 extern imenu rsntFile[];
@@ -39,10 +40,13 @@ void MainScreen::openGame(const char*file){
     return;
   }
   chdir(GetQuestPath().c_str());
-  QSPOpenSavedGame("autosave.sav",QSP_TRUE);
+  if(access("autosave.sav",R_OK)!=-1)
+    QSPOpenSavedGame("autosave.sav",QSP_TRUE);
+  else 
+    QSPRestartGame(QSP_TRUE);
   addRecent(file);
-  //QSPRestartGame(QSP_TRUE);
   getGameScreen()->hideImageScreen();
+  //UpdateUI(true);
 }
 
 void dir_selected(int isok, PBFileChooser * fc)
@@ -76,6 +80,8 @@ void SetDefaultFont(std::string name, int size)
 
 void font_selected(char *fontr, char *fontb, char *fonti, char *fontbi)
 {
+  //std::cerr<<__PRETTY_FUNCTION__<<" MC "<<fontr<<std::endl;
+  IntEventProcessed = true;
   std::string font(fontr);
 
   size_t div_pos = font.find_first_of(',');
@@ -112,6 +118,7 @@ bool GetVarValue(const QSP_CHAR * name, int *num, QSP_CHAR ** str)
 //static char dirbuf[1024];
 void GameScreen::HandleMainMenuItem(int index)
 {
+  std::cerr<<__PRETTY_FUNCTION__<<" MC "<<index<<std::endl;
   std::string fileName;
   IntEventProcessed = true;
   switch (index) {
@@ -162,9 +169,19 @@ void GameScreen::HandleMainMenuItem(int index)
   case MAINMENU_EXIT:
     CloseApp();
     break;
-  case MAINMENU_SELECTFONT:
-    OpenFontSelector("Выберите шрифт", (char *)std::string(defFont->name).c_str(),
-                     defFont->size, font_selected);
+  case MAINMENU_SELECTFONT:{
+    IntEventProcessed = false;
+    std::cerr<<"select font"<<std::endl;
+      std::stringstream str;
+      str << defFont->name;
+      if (str.str().find(".ttf") == std::string::npos)
+        str << ".ttf";
+      str << "," << defFont->size;
+      //std::cerr<<str.str()<<std::endl;
+      //OpenFontSelector("Select", str.str().c_str(), 1, fsh);
+    
+      OpenFontSelector("Выберите шрифт", str.str().c_str(), 1, font_selected);
+    }
     break;
   case MAINMENU_ORIENTATION:
     OpenRotateBox(orientation_selected);
@@ -191,12 +208,11 @@ void GameScreen::HandleMainMenuItem(int index)
     break;
   case MAINMENU_LAYOUTOLD:
       mainScreen.screenLayout=MainScreen::OLD_L;
-      mainScreen.updateUI(true);
+      mainScreen.update(true);
     break;
   case MAINMENU_LAYOUTALL:
       mainScreen.screenLayout=MainScreen::ALL_L;
-      jkhfkytd
-      mainScreen.updateUI(true);
+      mainScreen.update(true);
     break;
   default:
     if(-1!=index)
@@ -235,7 +251,7 @@ int MainScreen::handle(int type, int par1, int par2)
 
 void MainScreen::placeWidgets()
 {
-  //printf("%s\n", __PRETTY_FUNCTION__);
+  printf("%s\n", __PRETTY_FUNCTION__);
 #ifdef NETBOOK                  //netbook debug height
   if(orient==0 || orient == 3){
     setSize(0, orient==3?220:0, ScreenWidth(), 580);
@@ -344,6 +360,10 @@ void GameScreen::DialogLeavedHandler(PBWidget * sender, bool next)
 
 void GameScreen::placeWidgets()
 {
+  if(mainScreen.screenLayout==MainScreen::ALL_L){
+    if(additionalDescription->isVisible(true) || 
+       objectsDialog->isVisible(true))objectsScreen.setVisible(true);
+  }
   int buttonsHeight = 38;
   int delim=(mainScreen.screenLayout==MainScreen::ALL_L && objectsScreen.isVisible())?2:1;
   int left = x() + BORDER_SPACE, top = y() + BORDER_SPACE,
@@ -394,8 +414,13 @@ void GameScreen::placeWidgets()
   width = (w() - BORDER_SPACE * 2)/delim;
   left = (mainScreen.screenLayout==MainScreen::ALL_L)?w()/2:0 + BORDER_SPACE;
   //width = w() - BORDER_SPACE * 2;
-  objectsScreen.setSize(left, top + buttonsHeight + BORDER_SPACE, width,
-                        height - buttonsHeight - BORDER_SPACE);
+  if(mainScreen.screenLayout==MainScreen::ALL_L)top = y() + BORDER_SPACE;
+  else{ 
+    height -= buttonsHeight;
+    top = y() + buttonsHeight + BORDER_SPACE; 
+  }
+  objectsScreen.setSize(left, top, width,
+                        height - BORDER_SPACE);
 }
 
 void GameScreen::switchObjectsScreen()
@@ -414,8 +439,10 @@ void GameScreen::switchObjectsScreen()
     update(true);
   } else {
     objectsScreen.setVisible(true);
+
     locationDescription.setVisible(false);
     actionsDialog.setVisible(false);
+
     objectsScreen.setFocused(true);
     image_shown = imageScreen.isVisible();
     imageScreen.setVisible(false);
@@ -638,7 +665,7 @@ int LocationDescription::handle(int type, int par1, int par2)
 
 bool LocationDescription::reload()
 {
-  //std::cerr<<__PRETTY_FUNCTION__<<std::endl;
+  std::cerr<<__PRETTY_FUNCTION__<<std::endl;
   if (QSPGetMainDesc() == 0) {
     scrollDelta = 0;
     clear();
@@ -692,7 +719,7 @@ links_vector AdditionalDescription::getLinks()
   return _links;
 }
 
- ObjectsDialog::ObjectsDialog(std::string name, PBWidget * parent):PBListBox(name, parent)
+ObjectsDialog::ObjectsDialog(std::string name, PBWidget * parent):PBListBox(name, parent)
     //,FocusedItemChangedSlot(this, &ObjectsDialog::FocusedItemChangedHandler)
 {
   //OnFocusedWidgetChanged.connect(&FocusedItemChangedSlot);

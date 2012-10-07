@@ -145,8 +145,9 @@ class GameScreen:public PBWidget {
   PBButton menuButton;
   PBButton commandBoxButton;
   PBButton objectsButton;
-  //PBLabel versionLabel;
+ public:
   LocationDescription locationDescription;
+ protected:
   ActionsDialog actionsDialog;
   ObjectsScreen objectsScreen;
   ObjectsDialog *objectsDialog;

@@ -28,7 +28,7 @@ endif
 
 ifeq ($(BUILD),emu)
 CXXFLAGS+=-g `pkg-config --cflags sigc++-2.0` -DHTMLDEBUG  -DHAVE_SOUND=1 -DNETBOOK=1
-LDFLAGS+=-g -lgif -lhtmlcxx -lsigc-2.0
+LDFLAGS+=-L/usr/local/pocketbook/ubuntoo -g -lgif -lpng12 -lhtmlcxx -lsigc-2.0
 endif
 
 SOURCES_CPP = \
